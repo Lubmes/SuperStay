@@ -1,0 +1,66 @@
+<div class="bg-base-200 min-h-screen pb-12">
+  <!-- HERO BANNER -->
+  <div class="hero bg-primary text-primary-content py-12 mb-8 shadow-md">
+    <div class="hero-content text-center">
+      <div class="max-w-md">
+        <h1 class="text-4xl font-extrabold mb-2">Vind jouw SuperStay 🌟</h1>
+        <p class="text-sm opacity-80">Ontdek unieke huisjes in Zeeland of geniet van de zon in Andalusië.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4">
+    <h2 class="text-2xl font-bold mb-6 text-base-content">Onze beschikbare verblijven</h2>
+
+    <!-- GRID VAN ACCOMMODATIES -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <%= for acc <- @accommodations do %>
+        <div class="card bg-base-100 shadow-xl border border-base-300 hover:shadow-2xl transition-all duration-200">
+          
+          <!-- GEANIMEERDE BADGE PER TYPE -->
+          <div class="card-body">
+            <div class="flex justify-between items-start mb-2">
+              <span class="badge badge-secondary badge-outline text-xs uppercase font-semibold">
+                <%= if acc.type == "house", do: "🏡 Huis", else: "🏨 Kamer" %>
+              </span>
+              <span class="text-xs text-base-content/60 italic">
+                📍 <%= acc.location.name["nl"] %>
+              </span>
+            </div>
+
+            <!-- TITEL EN BESCHRIJVING -->
+            <h3 class="card-title text-xl font-bold text-base-content">
+              <%= acc.title["nl"] %>
+            </h3>
+            <p class="text-sm text-base-content/70 line-clamp-3 my-2">
+              <%= acc.description["nl"] %>
+            </p>
+
+            <!-- CAPACITEIT EN PRIJS -->
+            <div class="divider my-2"></div>
+            
+            <div class="flex justify-between items-center mt-2">
+              <div class="text-sm">
+                👥 <span class="font-semibold text-base-content"><%= acc.max_guests %></span> personen
+              </div>
+              <div class="text-right">
+                <span class="text-xl font-extrabold text-primary">€<%= acc.price_per_night %></span>
+                <span class="text-xs text-base-content/60 block">per nacht</span>
+              </div>
+            </div>
+
+            <!-- ACTIEKNOP NAAR HET TWEESTAPS-BOEKINGSSCHERM -->
+            <div class="card-actions justify-end mt-4">
+              <.link 
+                navigate={~p"/accommodations/#{acc.id}/book"} 
+                class="btn btn-primary btn-block text-white font-bold"
+              >
+                Nu Boeken ➔
+              </.link>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

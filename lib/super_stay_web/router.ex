@@ -17,7 +17,9 @@ defmodule SuperStayWeb.Router do
   scope "/", SuperStayWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", AccommodationLive.Index, :index
+
+    live "/accommodations/:accommodation_id/book", BookingLive.New, :new
   end
 
   # Other scopes may use custom stacks.

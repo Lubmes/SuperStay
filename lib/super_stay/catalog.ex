@@ -24,4 +24,13 @@ defmodule SuperStay.Catalog do
     |> Accommodation.changeset(attrs)
     |> Repo.insert()
   end
+
+  @doc """
+  Haalt alle accommodaties op uit de database, inclusief hun gekoppelde locatiegegevens.
+  """
+  def list_accommodations_with_locations do
+    Accommodation
+    |> Repo.all()
+    |> Repo.preload(:location)
+  end
 end
