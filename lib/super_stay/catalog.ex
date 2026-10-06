@@ -33,4 +33,23 @@ defmodule SuperStay.Catalog do
     |> Repo.all()
     |> Repo.preload(:location)
   end
+
+  @doc """
+  Haalt een specifieke accommodatie op via zijn ID, inclusief de overkoepelende locatiegegevens.
+  Werpt een Ecto.NoResultsError op als er niets wordt gevonden.
+  """
+  def get_accommodation!(id) do
+    Accommodation
+    |> Repo.get!(id)
+    |> Repo.preload(:location)
+  end
+
+  @doc """
+  Haalt een specifieke locatie op inclusief alle bijbehorende add-ons (extra's) die bij dit park/hotel horen.
+  """
+  def get_location_with_addons!(id) do
+    Location
+    |> Repo.get!(id)
+    |> Repo.preload(:addons)
+  end
 end

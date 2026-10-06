@@ -115,4 +115,11 @@ defmodule SuperStay.Bookings do
     end)
   end
 
+  @doc """
+  Genereert een changeset om een boeking te kunnen wijzigen of te tonen in een formulier.
+  """
+  def change_booking(%Booking{} = booking, attrs \\ %{}) do
+    Booking.changeset(booking, attrs)
+  end
+
 end
