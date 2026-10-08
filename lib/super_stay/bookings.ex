@@ -1,14 +1,7 @@
 defmodule SuperStay.Bookings do
   import Ecto.Query, warn: false
   alias SuperStay.Repo
-  alias SuperStay.Bookings.{Booking, Addon, BookingAddon}
-
-  # Addons catalogus
-  def create_addon(attrs \\ %{}) do
-    %Addon{}
-    |> Addon.changeset(attrs)
-    |> Repo.insert()
-  end
+  alias SuperStay.Bookings.{Booking, BookingAddon}
 
   # Boekingen
   def create_booking(attrs \\ %{}) do
@@ -39,7 +32,6 @@ defmodule SuperStay.Bookings do
     |> Repo.get!(id)
     |> Repo.preload([:accommodation, booking_addons: :addon])
   end
-
 
   @doc """
   Berekent de resterende beschikbare voorraad van een add-on op een specifieke datum.
@@ -77,7 +69,6 @@ defmodule SuperStay.Bookings do
     end
   end
 
-
   @doc """
   Slaat een boeking en alle gekoppelde add-ons per dag veilig op in een transactie.
   Valideert de actuele voorraad vlak voor het opslaan.
@@ -92,7 +83,6 @@ defmodule SuperStay.Bookings do
           for {date_str, addons} <- selected_addons_map,
               {addon_id_str, quantity} <- addons,
               quantity > 0 do
-
             date = Date.from_iso8601!(date_str)
             addon_id = String.to_integer(to_string(addon_id_str))
 
@@ -103,7 +93,10 @@ defmodule SuperStay.Bookings do
             else
               # Als er inmiddels te weinig voorraad is, breken we de hele transactie af
               addon = Repo.get!(Addon, addon_id)
-              Repo.rollback("Helaas zijn er niet genoeg stuks meer beschikbaar van '#{addon.name["nl"]}' op #{date}.")
+
+              Repo.rollback(
+                "Helaas zijn er niet genoeg stuks meer beschikbaar van '#{addon.name["nl"]}' op #{date}."
+              )
             end
           end
 
@@ -121,5 +114,4 @@ defmodule SuperStay.Bookings do
   def change_booking(%Booking{} = booking, attrs \\ %{}) do
     Booking.changeset(booking, attrs)
   end
-
 end

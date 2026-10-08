@@ -1,4 +1,4 @@
-defmodule SuperStay.Bookings.Addon do
+defmodule SuperStay.Catalog.Addon do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -7,7 +7,6 @@ defmodule SuperStay.Bookings.Addon do
     field :price, :decimal
     field :stock, :integer
 
-    # Nieuwe relatie toegevoegd:
     belongs_to :location, SuperStay.Catalog.Location
 
     timestamps()
@@ -23,7 +22,9 @@ defmodule SuperStay.Bookings.Addon do
   defp validate_required_locale(changeset, field, locale) do
     validate_change(changeset, field, fn _field, map ->
       case Map.get(map, to_string(locale)) do
-        nil -> [{field, "moet tenminste een Nederlandse ('#{locale}') vertaling bevatten"}]
+        nil ->
+          [{field, "moet tenminste een Nederlandse ('#{locale}') vertaling bevatten"}]
+
         value ->
           if String.trim(value) == "" do
             [{field, "Nederlandse vertaling mag niet leeg zijn"}]

@@ -4,7 +4,8 @@ defmodule SuperStay.Repo.Migrations.CreateAddons do
   def change do
     # 1. De catalogus van extra's (bijv. Fietsverhuur, Ontbijtservice)
     create table(:addons) do
-      add :name, :map, null: false            # Meertalige naam
+      # Meertalige naam
+      add :name, :map, null: false
       add :price, :decimal, precision: 10, scale: 2, null: false
 
       # DEZE REGEL MOET HIER BINNEN STAAN:

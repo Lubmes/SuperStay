@@ -1,7 +1,7 @@
 defmodule SuperStay.Catalog do
   import Ecto.Query, warn: false
   alias SuperStay.Repo
-  alias SuperStay.Catalog.{Location, Accommodation}
+  alias SuperStay.Catalog.{Location, Accommodation, Addon}
   alias SuperStay.Bookings.Booking
 
   # Locaties
@@ -10,6 +10,13 @@ defmodule SuperStay.Catalog do
   def create_location(attrs \\ %{}) do
     %Location{}
     |> Location.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  # Add-ons
+  def create_addon(attrs \\ %{}) do
+    %Addon{}
+    |> Addon.changeset(attrs)
     |> Repo.insert()
   end
 
@@ -80,5 +87,4 @@ defmodule SuperStay.Catalog do
     )
     |> Repo.all()
   end
-
 end

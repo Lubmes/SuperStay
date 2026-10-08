@@ -9,7 +9,8 @@ defmodule SuperStay.Repo.Migrations.CreateBookings do
       add :start_date, :date, null: false
       add :end_date, :date, null: false
       add :total_price, :decimal, precision: 10, scale: 2, null: false
-      add :status, :string, null: false, default: "pending" # pending, confirmed, cancelled
+      # pending, confirmed, cancelled
+      add :status, :string, null: false, default: "pending"
 
       # Gastgegevens (eenvoudige opzet zonder verplichte user-tabel)
       add :guest_name, :string, null: false

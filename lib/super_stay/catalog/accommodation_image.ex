@@ -5,7 +5,8 @@ defmodule SuperStay.Catalog.AccommodationImage do
   schema "accommodation_images" do
     field :url, :string
     field :position, :integer
-    field :caption, :map # Nieuw toegevoegd veld
+    # Nieuw toegevoegd veld
+    field :caption, :map
 
     belongs_to :accommodation, SuperStay.Catalog.Accommodation
 

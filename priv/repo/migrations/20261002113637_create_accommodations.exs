@@ -4,8 +4,10 @@ defmodule SuperStay.Repo.Migrations.CreateAccommodations do
   def change do
     # 1. De parent tabel: Locaties (Nu met meertalige naam!)
     create table(:locations) do
-      add :name, :map, null: false            # Gewijzigd van :string naar :map
-      add :type, :string, null: false         # "holiday_park", "hotel", "individual_property"
+      # Gewijzigd van :string naar :map
+      add :name, :map, null: false
+      # "holiday_park", "hotel", "individual_property"
+      add :type, :string, null: false
       add :latitude, :float, null: false
       add :longitude, :float, null: false
 

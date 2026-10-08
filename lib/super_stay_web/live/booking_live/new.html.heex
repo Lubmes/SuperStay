@@ -1,5 +1,4 @@
 <div class="max-w-4xl mx-auto p-6 mt-6 bg-base-100 shadow-xl rounded-2xl border border-base-200">
-  
   <!-- STAPPER (daisyUI Steps) -->
   <ul class="steps w-full mb-8">
     <li class={["step", if(@step >= 1, do: "step-primary")]}>Datums & Gegevens</li>
@@ -8,41 +7,47 @@
   </ul>
 
   <div class="mb-6">
-    <h1 class="text-3xl font-extrabold text-primary"><%= @accommodation.title["nl"] %></h1>
-    <p class="text-base-content/70">Locatie: <%= @accommodation.location.name["nl"] %></p>
+    <h1 class="text-3xl font-extrabold text-primary">{@accommodation.title["nl"]}</h1>
+    <p class="text-base-content/70">Locatie: {@accommodation.location.name["nl"]}</p>
   </div>
 
   <!-- ========================================================================= -->
   <!-- STAP 1: DATUMS & GAST GEGEVENS (Binnen het formulier) -->
   <!-- ========================================================================= -->
   <%= if @step == 1 do %>
-    <.form 
-      for={@form} 
-      phx-submit="next_step" 
-      phx-change="validate" 
+    <.form
+      for={@form}
+      phx-submit="next_step"
+      phx-change="validate"
       class="space-y-6"
     >
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
         <!-- LINKERKANT: INVOERVELDEN -->
         <div class="lg:col-span-2 space-y-6">
-          
           <!-- Periode Selectie -->
           <div class="card bg-base-100 border border-base-300 shadow-sm">
             <div class="card-body">
               <h2 class="card-title text-lg font-bold text-base-content mb-2">
                 📅 1. Kies je reisperiode
               </h2>
-              
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="form-control">
                   <label class="label"><span class="label-text font-semibold">Aankomstdatum</span></label>
-                  <.input field={@form[:start_date]} type="date" class="input input-bordered w-full focus:input-primary" />
+                  <.input
+                    field={@form[:start_date]}
+                    type="date"
+                    class="input input-bordered w-full focus:input-primary"
+                  />
                 </div>
-                
+
                 <div class="form-control">
                   <label class="label"><span class="label-text font-semibold">Vertrekdatum</span></label>
-                  <.input field={@form[:end_date]} type="date" class="input input-bordered w-full focus:input-primary" />
+                  <.input
+                    field={@form[:end_date]}
+                    type="date"
+                    class="input input-bordered w-full focus:input-primary"
+                  />
                 </div>
               </div>
             </div>
@@ -54,16 +59,26 @@
               <h2 class="card-title text-lg font-bold text-base-content mb-2">
                 👤 2. Jouw gegevens
               </h2>
-              
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="form-control">
                   <label class="label"><span class="label-text font-semibold">Voor- en achternaam</span></label>
-                  <.input field={@form[:guest_name]} type="text" placeholder="Bijv. Jan Modaal" class="input input-bordered w-full focus:input-primary" />
+                  <.input
+                    field={@form[:guest_name]}
+                    type="text"
+                    placeholder="Bijv. Jan Modaal"
+                    class="input input-bordered w-full focus:input-primary"
+                  />
                 </div>
-                
+
                 <div class="form-control">
                   <label class="label"><span class="label-text font-semibold">E-mailadres</span></label>
-                  <.input field={@form[:guest_email]} type="email" placeholder="naam@voorbeeld.nl" class="input input-bordered w-full focus:input-primary" />
+                  <.input
+                    field={@form[:guest_email]}
+                    type="email"
+                    placeholder="naam@voorbeeld.nl"
+                    class="input input-bordered w-full focus:input-primary"
+                  />
                 </div>
               </div>
             </div>
@@ -85,24 +100,23 @@
               <div class="text-sm opacity-90 space-y-3">
                 <div>
                   <span class="block font-semibold opacity-70">Verblijf:</span>
-                  <span class="text-base font-bold"><%= @accommodation.title["nl"] %></span>
+                  <span class="text-base font-bold">{@accommodation.title["nl"]}</span>
                 </div>
                 <div>
                   <span class="block font-semibold opacity-70">Type:</span>
                   <span class="badge badge-secondary badge-sm uppercase mt-1">
-                    <%= if @accommodation.type == "house", do: "🏡 Huis", else: "🏨 Kamer" %>
+                    {if @accommodation.type == "house", do: "🏡 Huis", else: "🏨 Kamer"}
                   </span>
                 </div>
               </div>
               <div class="divider divider-neutral my-2"></div>
               <div class="flex justify-between items-center">
                 <span class="font-semibold text-sm">Prijs per nacht:</span>
-                <span class="text-2xl font-black">€<%= @accommodation.price_per_night %></span>
+                <span class="text-2xl font-black">€{@accommodation.price_per_night}</span>
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </.form>
   <% end %>
@@ -112,17 +126,36 @@
   <!-- ========================================================================= -->
   <%= if @step == 2 do %>
     <div class="space-y-6">
-      
       <!-- SNELKEUZE (Pas toe op alle dagen) -->
       <div class="bg-primary/10 p-4 rounded-xl mb-6">
-        <h3 class="font-bold text-primary mb-2">⚡ Snelkeuze: Voeg toe voor alle dagen van je verblijf</h3>
+        <h3 class="font-bold text-primary mb-2">
+          ⚡ Snelkeuze: Voeg toe voor alle dagen van je verblijf
+        </h3>
         <div class="flex flex-wrap gap-4">
           <%= for addon <- @addons do %>
             <div class="flex items-center gap-2 bg-base-100 p-2 rounded-lg shadow-sm border border-base-200">
-              <span class="text-sm font-medium"><%= addon.name["nl"] %>:</span>
-              <button type="button" phx-click="apply_all_days" phx-value-addon-id={addon.id} phx-value-qty="1" class="btn btn-xs btn-outline btn-primary">+1 st.</button>
-              <button type="button" phx-click="apply_all_days" phx-value-addon-id={addon.id} phx-value-qty="2" class="btn btn-xs btn-outline btn-primary">+2 st.</button>
-              <button type="button" phx-click="apply_all_days" phx-value-addon-id={addon.id} phx-value-qty="0" class="btn btn-xs btn-error btn-outline">Wis</button>
+              <span class="text-sm font-medium">{addon.name["nl"]}:</span>
+              <button
+                type="button"
+                phx-click="apply_all_days"
+                phx-value-addon-id={addon.id}
+                phx-value-qty="1"
+                class="btn btn-xs btn-outline btn-primary"
+              >+1 st.</button>
+              <button
+                type="button"
+                phx-click="apply_all_days"
+                phx-value-addon-id={addon.id}
+                phx-value-qty="2"
+                class="btn btn-xs btn-outline btn-primary"
+              >+2 st.</button>
+              <button
+                type="button"
+                phx-click="apply_all_days"
+                phx-value-addon-id={addon.id}
+                phx-value-qty="0"
+                class="btn btn-xs btn-error btn-outline"
+              >Wis</button>
             </div>
           <% end %>
         </div>
@@ -131,38 +164,50 @@
       <!-- OVERZICHT PER SPECIFIEKE DAG -->
       <div class="space-y-3">
         <h3 class="text-xl font-bold mb-4">Kies je extra's per specifieke dag:</h3>
-        
+
         <%= for date <- Date.range(@start_date, Date.add(@end_date, -1)) do %>
           <% date_str = Date.to_string(date) %>
           <div class="collapse collapse-arrow bg-base-200 border border-base-300 rounded-xl">
-            <input type="checkbox" checked /> 
+            <input type="checkbox" checked />
             <div class="collapse-title font-semibold text-lg flex justify-between items-center pr-12">
-              <span>📅 <%= date_str %></span>
+              <span>📅 {date_str}</span>
             </div>
-            
+
             <div class="collapse-content bg-base-100 p-4 space-y-4">
               <%= for addon <- @addons do %>
-                <% 
-                  qty = get_in(@selected_addons, [date_str, addon.id]) || 0
-                  warning = get_in(@warnings, [date_str, addon.id])
-                %>
+                <% qty = get_in(@selected_addons, [date_str, addon.id]) || 0
+                warning = get_in(@warnings, [date_str, addon.id]) %>
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b last:border-0 gap-2">
                   <div>
-                    <span class="font-medium text-gray-800"><%= addon.name["nl"] %></span>
-                    <span class="text-sm text-base-content/60 block">€<%= addon.price %> per dag</span>
+                    <span class="font-medium text-gray-800">{addon.name["nl"]}</span>
+                    <span class="text-sm text-base-content/60 block">€{addon.price} per dag</span>
                   </div>
-                  
+
                   <!-- PLUS / MIN TELLER -->
                   <div class="flex flex-col items-end gap-1">
                     <div class="join border border-base-300">
-                      <button type="button" phx-click="change_qty" phx-value-date={date_str} phx-value-addon-id={addon.id} phx-value-op="dec" class="btn btn-sm join-item">-</button>
-                      <span class="bg-base-200 px-4 flex items-center font-bold join-item text-sm"><%= qty %></span>
-                      <button type="button" phx-click="change_qty" phx-value-date={date_str} phx-value-addon-id={addon.id} phx-value-op="inc" class="btn btn-sm join-item">+</button>
+                      <button
+                        type="button"
+                        phx-click="change_qty"
+                        phx-value-date={date_str}
+                        phx-value-addon-id={addon.id}
+                        phx-value-op="dec"
+                        class="btn btn-sm join-item"
+                      >-</button>
+                      <span class="bg-base-200 px-4 flex items-center font-bold join-item text-sm">{qty}</span>
+                      <button
+                        type="button"
+                        phx-click="change_qty"
+                        phx-value-date={date_str}
+                        phx-value-addon-id={addon.id}
+                        phx-value-op="inc"
+                        class="btn btn-sm join-item"
+                      >+</button>
                     </div>
-                    
+
                     <!-- WAARSCHUWINGSTEXT -->
                     <%= if warning do %>
-                      <span class="text-xs text-error font-semibold mt-1">⚠️ <%= warning %></span>
+                      <span class="text-xs text-error font-semibold mt-1">⚠️ {warning}</span>
                     <% end %>
                   </div>
                 </div>
@@ -175,11 +220,14 @@
       <!-- NAVIGATIE ONDERAAN STAP 2 -->
       <div class="flex justify-between pt-6 border-t border-base-300 mt-6">
         <button type="button" phx-click="prev_step" class="btn btn-outline">◀ Terug naar datums</button>
-        <button type="button" phx-click="next_to_review" class="btn btn-primary px-8 text-white font-bold shadow-md">
+        <button
+          type="button"
+          phx-click="next_to_review"
+          class="btn btn-primary px-8 text-white font-bold shadow-md"
+        >
           Volgende: Controleer Overzicht ➔
         </button>
       </div>
-
     </div>
   <% end %>
 
@@ -189,19 +237,23 @@
   <%= if @step == 3 do %>
     <div class="space-y-6 animate-fade-in">
       <h2 class="text-2xl font-bold text-base-content">🧐 Controleer je boeking</h2>
-      <p class="text-sm text-base-content/60">Neem de gegevens hieronder door voordat je de boeking definitief plaatst.</p>
+      <p class="text-sm text-base-content/60">
+        Neem de gegevens hieronder door voordat je de boeking definitief plaatst.
+      </p>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Reiziger & Periode -->
         <div class="card bg-base-200 p-4 rounded-xl space-y-2">
           <h3 class="font-bold text-lg text-primary">👤 Jouw Gegevens</h3>
-          <p><span class="font-medium">Naam:</span> <%= @form[:guest_name].value %></p>
-          <p><span class="font-medium">E-mail:</span> <%= @form[:guest_email].value %></p>
+          <p><span class="font-medium">Naam:</span> {@form[:guest_name].value}</p>
+          <p><span class="font-medium">E-mail:</span> {@form[:guest_email].value}</p>
           <div class="divider my-1"></div>
           <h3 class="font-bold text-lg text-primary">📅 Verblijfsperiode</h3>
-          <p><span class="font-medium">Aankomst:</span> <%= @start_date %></p>
-          <p><span class="font-medium">Vertrek:</span> <%= @end_date %></p>
-          <p><span class="font-medium">Aantal nachten:</span> <%= Date.diff(@end_date, @start_date) %> nachten</p>
+          <p><span class="font-medium">Aankomst:</span> {@start_date}</p>
+          <p><span class="font-medium">Vertrek:</span> {@end_date}</p>
+          <p>
+            <span class="font-medium">Aantal nachten:</span> {Date.diff(@end_date, @start_date)} nachten
+          </p>
         </div>
 
         <!-- Prijsspecificatie (daisyUI Stat of Card) -->
@@ -211,20 +263,23 @@
             <div class="space-y-2 text-sm opacity-90">
               <div class="flex justify-between">
                 <span>Kosten verblijf:</span>
-                <span>€<%= Decimal.mult(@accommodation.price_per_night, Date.diff(@end_date, @start_date)) %></span>
+                <span>€{Decimal.mult(
+                  @accommodation.price_per_night,
+                  Date.diff(@end_date, @start_date)
+                )}</span>
               </div>
               <div class="flex justify-between">
                 <span>Geselecteerde extra's:</span>
-                <span>€<%= @total_addons_price %></span>
+                <span>€{@total_addons_price}</span>
               </div>
             </div>
           </div>
-          
+
           <div>
             <div class="divider divider-neutral my-2"></div>
             <div class="flex justify-between items-center">
               <span class="font-extrabold text-lg">Totaalprijs:</span>
-              <span class="text-3xl font-black">€<%= @total_price %></span>
+              <span class="text-3xl font-black">€{@total_price}</span>
             </div>
           </div>
         </div>
@@ -247,9 +302,9 @@
                 <%= for {addon_id, qty} <- addons, qty > 0 do %>
                   <% addon = Enum.find(@addons, &(&1.id == addon_id)) %>
                   <tr>
-                    <td class="font-medium">📅 <%= date_str %></td>
-                    <td><%= addon.name["nl"] %></td>
-                    <td class="text-right font-bold"><%= qty %> st.</td>
+                    <td class="font-medium">📅 {date_str}</td>
+                    <td>{addon.name["nl"]}</td>
+                    <td class="text-right font-bold">{qty} st.</td>
                   </tr>
                 <% end %>
               <% end %>
@@ -261,12 +316,14 @@
       <!-- NAVIGATIE EN ECHTE OPSLAGKNOP -->
       <div class="flex justify-between pt-6 border-t border-base-300">
         <button type="button" phx-click="prev_to_addons" class="btn btn-outline">◀ Aanpassen</button>
-        <button type="button" phx-click="save" class="btn btn-success btn-wide text-white font-extrabold shadow-md text-lg">
+        <button
+          type="button"
+          phx-click="save"
+          class="btn btn-success btn-wide text-white font-extrabold shadow-md text-lg"
+        >
           Bevestig & Boek Nu! 🎉
         </button>
       </div>
     </div>
   <% end %>
-
-
 </div>

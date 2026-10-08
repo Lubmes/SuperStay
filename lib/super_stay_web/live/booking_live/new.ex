@@ -1,6 +1,6 @@
 defmodule SuperStayWeb.BookingLive.New do
   use SuperStayWeb, :live_view
-  alias SuperStay.{Catalog, Bookings}
+  alias SuperStay.Bookings
   alias SuperStay.Bookings.Booking
 
   @impl true
@@ -16,15 +16,17 @@ defmodule SuperStayWeb.BookingLive.New do
     addons = accommodation.location.addons
 
     # 1. Lees de datums uit de URL-parameters (als ze bestaan)
-    start_date = case Date.from_iso8601(params["start_date"] || "") do
-      {:ok, date} -> date
-      _ -> nil
-    end
+    start_date =
+      case Date.from_iso8601(params["start_date"] || "") do
+        {:ok, date} -> date
+        _ -> nil
+      end
 
-    end_date = case Date.from_iso8601(params["end_date"] || "") do
-      {:ok, date} -> date
-      _ -> nil
-    end
+    end_date =
+      case Date.from_iso8601(params["end_date"] || "") do
+        {:ok, date} -> date
+        _ -> nil
+      end
 
     # 2. Maak de initiële changeset aan met de meegestuurde datums
     booking_attrs = %{
@@ -48,7 +50,6 @@ defmodule SuperStayWeb.BookingLive.New do
      |> assign_form(changeset)}
   end
 
-
   @impl true
   # Formulier-validatie tijdens het typen in Stap 1
   def handle_event("validate", %{"booking" => booking_params}, socket) do
@@ -58,15 +59,17 @@ defmodule SuperStayWeb.BookingLive.New do
       |> Map.put(:action, :validate)
 
     # Update de start- en einddatum live in de staat zodat de kalender-logica meebeweegt
-    start_date = case Date.from_iso8601(booking_params["start_date"] || "") do
-      {:ok, date} -> date
-      _ -> socket.assigns.start_date
-    end
+    start_date =
+      case Date.from_iso8601(booking_params["start_date"] || "") do
+        {:ok, date} -> date
+        _ -> socket.assigns.start_date
+      end
 
-    end_date = case Date.from_iso8601(booking_params["end_date"] || "") do
-      {:ok, date} -> date
-      _ -> socket.assigns.end_date
-    end
+    end_date =
+      case Date.from_iso8601(booking_params["end_date"] || "") do
+        {:ok, date} -> date
+        _ -> socket.assigns.end_date
+      end
 
     {:noreply,
      socket
@@ -83,7 +86,8 @@ defmodule SuperStayWeb.BookingLive.New do
       booking_params
       |> Map.put("accommodation_id", socket.assigns.accommodation.id)
       |> Map.put("status", "pending")
-      |> Map.put("total_price", "0.00") # Wordt in stap 2 definitief berekend
+      # Wordt in stap 2 definitief berekend
+      |> Map.put("total_price", "0.00")
 
     changeset =
       %Booking{}
@@ -98,7 +102,8 @@ defmodule SuperStayWeb.BookingLive.New do
 
       {:noreply,
        socket
-       |> assign(:step, 2) # GAAT NU WEL NAAR STAP 2!
+       # GAAT NU WEL NAAR STAP 2!
+       |> assign(:step, 2)
        |> assign(:start_date, start_date)
        |> assign(:end_date, end_date)
        |> assign(:selected_addons, selected_addons)
@@ -108,7 +113,6 @@ defmodule SuperStayWeb.BookingLive.New do
       {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
-
 
   @impl true
   # Event om terug te keren naar de kalender vanuit de add-ons pagina
@@ -127,7 +131,8 @@ defmodule SuperStayWeb.BookingLive.New do
 
     {:noreply,
      socket
-     |> assign(:step, 3) # Schakel door naar het overzicht!
+     # Schakel door naar het overzicht!
+     |> assign(:step, 3)
      |> assign(:total_addons_price, addons_price)
      |> assign(:total_price, total_price)}
   end
@@ -138,10 +143,13 @@ defmodule SuperStayWeb.BookingLive.New do
     {:noreply, assign(socket, :step, 2)}
   end
 
-
   @impl true
   # Event voor de plus- en min-knoppen bij de add-ons per datum
-  def handle_event("change_qty", %{"date" => date_str, "addon-id" => addon_id_str, "op" => op}, socket) do
+  def handle_event(
+        "change_qty",
+        %{"date" => date_str, "addon-id" => addon_id_str, "op" => op},
+        socket
+      ) do
     addon_id = String.to_integer(addon_id_str)
     date = Date.from_iso8601!(date_str)
 
@@ -149,7 +157,8 @@ defmodule SuperStayWeb.BookingLive.New do
     new_qty = if op == "inc", do: current_qty + 1, else: max(0, current_qty - 1)
 
     # 1. Update de map los via put_in op de MAP (niet op de socket!)
-    updated_selected_addons = put_in(socket.assigns.selected_addons, [date_str, addon_id], new_qty)
+    updated_selected_addons =
+      put_in(socket.assigns.selected_addons, [date_str, addon_id], new_qty)
 
     # 2. Sla de map veilig op in de socket via assign/3
     new_socket =
@@ -160,7 +169,6 @@ defmodule SuperStayWeb.BookingLive.New do
     {:noreply, new_socket}
   end
 
-
   @impl true
   # Event voor de "Pas toe op alle dagen" snelkeuze-knop
   def handle_event("apply_all_days", %{"addon-id" => addon_id_str, "qty" => qty_str}, socket) do
@@ -170,22 +178,23 @@ defmodule SuperStayWeb.BookingLive.New do
     days = Date.range(socket.assigns.start_date, Date.add(socket.assigns.end_date, -1))
 
     # We passen de wijzigingen eerst toe op de losse map
-    updated_addons = Enum.reduce(days, socket.assigns.selected_addons, fn date, acc_map ->
-      date_str = Date.to_string(date)
-      put_in(acc_map, [date_str, addon_id], qty)
-    end)
+    updated_addons =
+      Enum.reduce(days, socket.assigns.selected_addons, fn date, acc_map ->
+        date_str = Date.to_string(date)
+        put_in(acc_map, [date_str, addon_id], qty)
+      end)
 
     # Daarna voeren we de voorraadchecks uit over de socket
     new_socket = assign(socket, :selected_addons, updated_addons)
 
-    checked_socket = Enum.reduce(days, new_socket, fn date, acc_socket ->
-      date_str = Date.to_string(date)
-      validate_stock_for_day(acc_socket, date_str, date, addon_id, qty)
-    end)
+    checked_socket =
+      Enum.reduce(days, new_socket, fn date, acc_socket ->
+        date_str = Date.to_string(date)
+        validate_stock_for_day(acc_socket, date_str, date, addon_id, qty)
+      end)
 
     {:noreply, checked_socket}
   end
-
 
   @impl true
   # Gewijzigd naar een algemene click-handler!
@@ -205,7 +214,8 @@ defmodule SuperStayWeb.BookingLive.New do
       booking_params
       |> Map.put("total_price", total_price)
       |> Map.put("accommodation_id", socket.assigns.accommodation.id)
-      |> Map.put("status", "confirmed") # Direct bevestigd!
+      # Direct bevestigd!
+      |> Map.put("status", "confirmed")
 
     # Sla alles op via onze database-transactie
     case Bookings.create_booking_with_addons(extended_params, socket.assigns.selected_addons) do
@@ -223,8 +233,7 @@ defmodule SuperStayWeb.BookingLive.New do
     end
   end
 
-
-    # --- PRIVATE HELPERS ---
+  # --- PRIVATE HELPERS ---
 
   # Zorgt dat de waarschuwingen netjes als string-keys worden opgeslagen
   defp validate_stock_for_day(socket, date_str, date, addon_id, qty) do
@@ -247,7 +256,8 @@ defmodule SuperStayWeb.BookingLive.New do
   # We zetten deze DIRECT om naar Strings, zodat de template ze kan vinden!
   defp initialize_addons_map(start_date, end_date, addons) do
     Date.range(start_date, Date.add(end_date, -1))
-    |> Enum.map(&Date.to_string/1) # Zet alle datums om naar "YYYY-MM-DD" strings
+    # Zet alle datums om naar "YYYY-MM-DD" strings
+    |> Enum.map(&Date.to_string/1)
     |> Map.new(fn date_str ->
       {date_str, Map.new(addons, fn a -> {a.id, 0} end)}
     end)
@@ -264,5 +274,4 @@ defmodule SuperStayWeb.BookingLive.New do
       end)
     end)
   end
-
 end

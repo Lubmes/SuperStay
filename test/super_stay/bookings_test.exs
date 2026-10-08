@@ -4,24 +4,37 @@ defmodule SuperStay.BookingsTest do
 
   setup do
     # Helpers om snel testdata aan te maken binnen de test-sandbox
-    {:ok, location} = Catalog.create_location(%{
-      name: %{"nl" => "Test Park"}, type: "holiday_park", latitude: 51.0, longitude: 3.0
-    })
+    {:ok, location} =
+      Catalog.create_location(%{
+        name: %{"nl" => "Test Park"},
+        type: "holiday_park",
+        latitude: 51.0,
+        longitude: 3.0
+      })
 
-    {:ok, accommodation} = Catalog.create_accommodation(%{
-      title: %{"nl" => "Luxe Huisje"}, type: "house", max_guests: 4,
-      price_per_night: 100.00, location_id: location.id
-    })
+    {:ok, accommodation} =
+      Catalog.create_accommodation(%{
+        title: %{"nl" => "Luxe Huisje"},
+        type: "house",
+        max_guests: 4,
+        price_per_night: 100.00,
+        location_id: location.id
+      })
 
-    {:ok, addon} = Bookings.create_addon(%{
-      name: %{"nl" => "Fiets"}, price: 10.00,
-      location_id: location.id
-    })
+    {:ok, addon} =
+      Catalog.create_addon(%{
+        name: %{"nl" => "Fiets"},
+        price: 10.00,
+        location_id: location.id
+      })
 
     %{accommodation: accommodation, addon: addon}
   end
 
-  test "boekt een week en huurt een fiets van maandag t/m vrijdag", %{accommodation: acc, addon: addon} do
+  test "boekt een week en huurt een fiets van maandag t/m vrijdag", %{
+    accommodation: acc,
+    addon: addon
+  } do
     # 1. Definieer de week (Zaterdag 3 oktober t/m Zaterdag 10 oktober 2026)
     start_date = ~D[2026-10-03]
     end_date = ~D[2026-10-10]
@@ -39,11 +52,16 @@ defmodule SuperStay.BookingsTest do
 
     # 2. Huur een fiets voor doordeweeks (maandag 5 okt t/m vrijdag 9 okt)
     work_days = [
-      ~D[2026-10-05], # Maandag
-      ~D[2026-10-06], # Dinsdag
-      ~D[2026-10-07], # Woensdag
-      ~D[2026-10-08], # Donderdag
-      ~D[2026-10-09]  # Vrijdag
+      # Maandag
+      ~D[2026-10-05],
+      # Dinsdag
+      ~D[2026-10-06],
+      # Woensdag
+      ~D[2026-10-07],
+      # Donderdag
+      ~D[2026-10-08],
+      # Vrijdag
+      ~D[2026-10-09]
     ]
 
     for date <- work_days do

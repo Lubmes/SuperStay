@@ -18,8 +18,24 @@ defmodule SuperStay.Bookings.Booking do
 
   def changeset(booking, attrs) do
     booking
-    |> cast(attrs, [:start_date, :end_date, :total_price, :status, :guest_name, :guest_email, :accommodation_id])
-    |> validate_required([:start_date, :end_date, :total_price, :status, :guest_name, :guest_email, :accommodation_id])
+    |> cast(attrs, [
+      :start_date,
+      :end_date,
+      :total_price,
+      :status,
+      :guest_name,
+      :guest_email,
+      :accommodation_id
+    ])
+    |> validate_required([
+      :start_date,
+      :end_date,
+      :total_price,
+      :status,
+      :guest_name,
+      :guest_email,
+      :accommodation_id
+    ])
     |> validate_inclusion(:status, ["pending", "confirmed", "cancelled"])
     |> validate_dates()
   end

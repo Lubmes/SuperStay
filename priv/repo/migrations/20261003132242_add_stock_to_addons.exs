@@ -3,7 +3,8 @@ defmodule SuperStay.Repo.Migrations.AddStockToAddons do
 
   def change do
     alter table(:addons) do
-      add :stock, :integer # null betekent oneindig, een getal betekent maximale voorraad
+      # null betekent oneindig, een getal betekent maximale voorraad
+      add :stock, :integer
     end
   end
 end

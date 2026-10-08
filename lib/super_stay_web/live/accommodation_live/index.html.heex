@@ -1,11 +1,12 @@
 <div class="bg-base-200 min-h-screen pb-12">
-  
   <!-- HERO BANNER MET LIVE DATUM-FILTER -->
   <div class="hero bg-primary text-primary-content py-12 mb-8 shadow-md">
     <div class="hero-content flex-col w-full max-w-4xl">
       <div class="text-center mb-4">
         <h1 class="text-4xl font-extrabold mb-2">Vind jouw SuperStay 🌟</h1>
-        <p class="text-sm opacity-80">Geef je reisdatums op om direct de beschikbare accommodaties te zien.</p>
+        <p class="text-sm opacity-80">
+          Geef je reisdatums op om direct de beschikbare accommodaties te zien.
+        </p>
       </div>
 
       <!-- DE INTERACTIEVE ZOEKBALK (daisyUI Card) -->
@@ -14,16 +15,25 @@
           <form phx-change="filter_dates" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
             <div class="form-control">
               <label class="label p-1"><span class="label-text font-bold text-xs uppercase text-gray-500">Aankomstdatum</span></label>
-              <input type="date" name="start_date" value={@start_date || ""} class="input input-bordered w-full focus:input-primary" />
+              <input
+                type="date"
+                name="start_date"
+                value={@start_date || ""}
+                class="input input-bordered w-full focus:input-primary"
+              />
             </div>
             <div class="form-control">
               <label class="label p-1"><span class="label-text font-bold text-xs uppercase text-gray-500">Vertrekdatum</span></label>
-              <input type="date" name="end_date" value={@end_date || ""} class="input input-bordered w-full focus:input-primary" />
+              <input
+                type="date"
+                name="end_date"
+                value={@end_date || ""}
+                class="input input-bordered w-full focus:input-primary"
+              />
             </div>
           </form>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -31,18 +41,28 @@
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-base-content">
         <%= if @start_date && @end_date do %>
-          ✨ Beschikbaar van <%= @start_date %> tot <%= @end_date %>
+          ✨ Beschikbaar van {@start_date} tot {@end_date}
         <% else %>
           Onze beschikbare verblijven
         <% end %>
       </h2>
-      <span class="badge badge-neutral font-bold"><%= length(@accommodations) %> resultaten</span>
+      <span class="badge badge-neutral font-bold">{length(@accommodations)} resultaten</span>
     </div>
 
     <!-- GEEN RESULTATEN HELP-TEXT -->
     <%= if Enum.empty?(@accommodations) do %>
       <div class="alert alert-warning shadow-sm">
-        <svg xmlns="http://w3.org" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <svg
+          xmlns="http://w3.org"
+          class="stroke-current shrink-0 h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+        ><path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        /></svg>
         <span>Helaas, alles is volgeboekt in deze periode. Probeer een andere datumcombinatie!</span>
       </div>
     <% end %>
@@ -54,20 +74,22 @@
           <div class="card-body">
             <div class="flex justify-between items-start mb-2">
               <span class="badge badge-secondary badge-outline text-xs uppercase font-semibold">
-                <%= if acc.type == "house", do: "🏡 Huis", else: "🏨 Kamer" %>
+                {if acc.type == "house", do: "🏡 Huis", else: "🏨 Kamer"}
               </span>
-              <span class="text-xs text-base-content/60 italic">📍 <%= acc.location.name["nl"] %></span>
+              <span class="text-xs text-base-content/60 italic">📍 {acc.location.name["nl"]}</span>
             </div>
 
-            <h3 class="card-title text-xl font-bold text-base-content"><%= acc.title["nl"] %></h3>
-            <p class="text-sm text-base-content/70 line-clamp-3 my-2"><%= acc.description["nl"] %></p>
+            <h3 class="card-title text-xl font-bold text-base-content">{acc.title["nl"]}</h3>
+            <p class="text-sm text-base-content/70 line-clamp-3 my-2">{acc.description["nl"]}</p>
 
             <div class="divider my-2"></div>
-            
+
             <div class="flex justify-between items-center mt-2">
-              <div class="text-sm">👥 <span class="font-semibold"><%= acc.max_guests %></span> personen</div>
+              <div class="text-sm">
+                👥 <span class="font-semibold">{acc.max_guests}</span> personen
+              </div>
               <div class="text-right">
-                <span class="text-xl font-extrabold text-primary">€<%= acc.price_per_night %></span>
+                <span class="text-xl font-extrabold text-primary">€{acc.price_per_night}</span>
                 <span class="text-xs text-base-content/60 block">per nacht</span>
               </div>
             </div>
@@ -76,16 +98,18 @@
             <div class="card-actions justify-end mt-4">
               <%= if @start_date && @end_date do %>
                 <!-- Datums zijn ingevuld: stuur ze veilig mee als strings -->
-                <.link 
-                  navigate={~p"/accommodations/#{acc.id}/book?start_date=#{Date.to_string(@start_date)}&end_date=#{Date.to_string(@end_date)}"} 
+                <.link
+                  navigate={
+                    ~p"/accommodations/#{acc.id}/book?start_date=#{Date.to_string(@start_date)}&end_date=#{Date.to_string(@end_date)}"
+                  }
                   class="btn btn-primary btn-block text-white font-bold"
                 >
                   Nu Boeken ➔
                 </.link>
               <% else %>
                 <!-- Nog geen datums ingevuld: stuur de gast gewoon naar het formulier zonder URL-parameters -->
-                <.link 
-                  navigate={~p"/accommodations/#{acc.id}/book"} 
+                <.link
+                  navigate={~p"/accommodations/#{acc.id}/book"}
                   class="btn btn-primary btn-block text-white font-bold"
                 >
                   Nu Boeken ➔

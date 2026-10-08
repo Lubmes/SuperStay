@@ -27,7 +27,9 @@ defmodule SuperStay.Catalog.Accommodation do
   defp validate_required_locale(changeset, field, locale) do
     validate_change(changeset, field, fn _field, map ->
       case Map.get(map, to_string(locale)) do
-        nil -> [{field, "moet tenminste een Nederlandse ('#{locale}') vertaling bevatten"}]
+        nil ->
+          [{field, "moet tenminste een Nederlandse ('#{locale}') vertaling bevatten"}]
+
         value ->
           if String.trim(value) == "" do
             [{field, "Nederlandse vertaling mag niet leeg zijn"}]
