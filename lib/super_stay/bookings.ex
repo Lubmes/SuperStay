@@ -34,6 +34,24 @@ defmodule SuperStay.Bookings do
   end
 
   @doc """
+  Controleert of een accommodatie voor een volledig datumbereik vrij is van
+  andere bevestigde boekingen.
+  """
+  def accommodation_dates_available?(accommodation_id, %Date{} = start_date, %Date{} = end_date) do
+    if Date.compare(end_date, start_date) == :gt do
+      from(b in Booking,
+        where: b.accommodation_id == ^accommodation_id,
+        where: b.status == "confirmed",
+        where: b.start_date < ^end_date and b.end_date > ^start_date
+      )
+      |> Repo.exists?()
+      |> Kernel.not()
+    else
+      false
+    end
+  end
+
+  @doc """
   Berekent de resterende beschikbare voorraad van een add-on op een specifieke datum.
   Als het een oneindig product is (stock is nil), geeft het :infinite terug.
   """
@@ -113,5 +131,17 @@ defmodule SuperStay.Bookings do
   """
   def change_booking(%Booking{} = booking, attrs \\ %{}) do
     Booking.changeset(booking, attrs)
+  end
+
+  def validate_accommodation_dates(changeset, accommodation_id) do
+    start_date = Ecto.Changeset.get_field(changeset, :start_date)
+    end_date = Ecto.Changeset.get_field(changeset, :end_date)
+
+    if start_date && end_date &&
+         not accommodation_dates_available?(accommodation_id, start_date, end_date) do
+      Ecto.Changeset.add_error(changeset, :start_date, "is al geboekt voor deze accommodatie")
+    else
+      changeset
+    end
   end
 end

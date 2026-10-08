@@ -31,6 +31,22 @@ defmodule SuperStay.BookingsTest do
     %{accommodation: accommodation, addon: addon}
   end
 
+  test "blokkeert overlappende datums voor dezelfde accommodatie", %{accommodation: acc} do
+    assert {:ok, _booking} =
+             Bookings.create_booking(%{
+               start_date: ~D[2026-10-03],
+               end_date: ~D[2026-10-10],
+               total_price: 700.00,
+               guest_name: "Jan Modaal",
+               guest_email: "jan@modaal.nl",
+               accommodation_id: acc.id,
+               status: "confirmed"
+             })
+
+    refute Bookings.accommodation_dates_available?(acc.id, ~D[2026-10-05], ~D[2026-10-08])
+    assert Bookings.accommodation_dates_available?(acc.id, ~D[2026-10-10], ~D[2026-10-12])
+  end
+
   test "boekt een week en huurt een fiets van maandag t/m vrijdag", %{
     accommodation: acc,
     addon: addon

@@ -56,6 +56,7 @@ defmodule SuperStayWeb.BookingLive.New do
     changeset =
       %Booking{}
       |> Bookings.change_booking(booking_params)
+      |> Bookings.validate_accommodation_dates(socket.assigns.accommodation.id)
       |> Map.put(:action, :validate)
 
     # Update de start- en einddatum live in de staat zodat de kalender-logica meebeweegt
@@ -92,6 +93,7 @@ defmodule SuperStayWeb.BookingLive.New do
     changeset =
       %Booking{}
       |> Bookings.change_booking(full_params)
+      |> Bookings.validate_accommodation_dates(socket.assigns.accommodation.id)
       |> Map.put(:action, :validate)
 
     if changeset.valid? do
