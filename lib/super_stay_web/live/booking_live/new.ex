@@ -5,30 +5,49 @@ defmodule SuperStayWeb.BookingLive.New do
 
   @impl true
   def mount(params, _session, socket) do
-    accommodation = Catalog.get_accommodation!(params["accommodation_id"])
-    location = Catalog.get_location_with_addons!(accommodation.location_id)
+    accommodation_id = params["accommodation_id"] || params["id"]
 
-    # Standaard verblijf: 1 week vanaf vandaag
-    start_date = Date.utc_today()
-    end_date = Date.add(start_date, 7)
+    # We halen de accommodatie op en laden DIRECT de locatie en de bijbehorende add-ons in!
+    accommodation =
+      SuperStay.Catalog.get_accommodation!(accommodation_id)
+      |> SuperStay.Repo.preload(location: :addons)
 
-    changeset = Bookings.change_booking(%Booking{
-      start_date: start_date,
-      end_date: end_date,
-      accommodation_id: accommodation.id
-    })
+    # Nu kunnen we de add-ons super simpel en veilig uit de relatie pakken
+    addons = accommodation.location.addons
+
+    # 1. Lees de datums uit de URL-parameters (als ze bestaan)
+    start_date = case Date.from_iso8601(params["start_date"] || "") do
+      {:ok, date} -> date
+      _ -> nil
+    end
+
+    end_date = case Date.from_iso8601(params["end_date"] || "") do
+      {:ok, date} -> date
+      _ -> nil
+    end
+
+    # 2. Maak de initiële changeset aan met de meegestuurde datums
+    booking_attrs = %{
+      "start_date" => start_date,
+      "end_date" => end_date,
+      "accommodation_id" => accommodation.id
+    }
+
+    changeset = Bookings.change_booking(%SuperStay.Bookings.Booking{}, booking_attrs)
 
     {:ok,
      socket
-     |> assign(:step, 1) # We beginnen altijd bij Stap 1
+     |> assign(:step, 1)
      |> assign(:accommodation, accommodation)
-     |> assign(:addons, location.addons)
+     |> assign(:addons, addons)
      |> assign(:start_date, start_date)
      |> assign(:end_date, end_date)
-     |> assign(:selected_addons, %{}) # Structuur: %{"2026-10-05" => %{addon_id => aantal}}
-     |> assign(:warnings, %{})        # Slaat eventuele voorraadwaarschuwingen op
+     |> assign(:selected_addons, %{})
+     |> assign(:warnings, %{})
+     |> assign(:dates_available, true)
      |> assign_form(changeset)}
   end
+
 
   @impl true
   # Formulier-validatie tijdens het typen in Stap 1
