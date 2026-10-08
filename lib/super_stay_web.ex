@@ -86,6 +86,7 @@ defmodule SuperStayWeb do
       import Phoenix.HTML
       # Core UI components
       import SuperStayWeb.CoreComponents
+      import SuperStayWeb.DateRangePicker
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

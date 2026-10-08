@@ -103,3 +103,42 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+.date-range-picker .date-picker-day {
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  color: var(--color-base-content);
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.date-range-picker .date-picker-day:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  transform: translateY(-1px);
+}
+
+.date-range-picker .date-picker-day--muted {
+  color: color-mix(in srgb, var(--color-base-content) 45%, transparent);
+}
+
+.date-range-picker .date-picker-day--selected,
+.date-range-picker .date-picker-day--range {
+  background-color: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.date-range-picker .date-picker-day--range {
+  border-radius: 0.25rem;
+}
+
+.date-range-picker .date-picker-day--blocked,
+.date-range-picker .date-picker-day--past {
+  background-color: var(--color-base-300);
+  color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+  cursor: not-allowed;
+}
+
+.date-range-picker .date-picker-day:disabled {
+  opacity: 1;
+}

@@ -9,28 +9,18 @@
         </p>
       </div>
 
-      <!-- DE INTERACTIEVE ZOEKBALK (daisyUI Card) -->
+      <!-- DE INTERACTIEVE ZOEKBALK -->
       <div class="card bg-base-100 shadow-lg text-base-content w-full border border-base-300">
         <div class="card-body p-4 sm:p-6">
-          <form phx-change="filter_dates" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-            <div class="form-control">
-              <label class="label p-1"><span class="label-text font-bold text-xs uppercase text-gray-500">Aankomstdatum</span></label>
-              <input
-                type="date"
-                name="start_date"
-                value={@start_date || ""}
-                class="input input-bordered w-full focus:input-primary"
-              />
-            </div>
-            <div class="form-control">
-              <label class="label p-1"><span class="label-text font-bold text-xs uppercase text-gray-500">Vertrekdatum</span></label>
-              <input
-                type="date"
-                name="end_date"
-                value={@end_date || ""}
-                class="input input-bordered w-full focus:input-primary"
-              />
-            </div>
+          <form phx-change="filter_dates" id="accommodation-filter-form" class="space-y-4">
+            <.date_range_picker
+              id="accommodation-date-picker"
+              start_name="start_date"
+              end_name="end_date"
+              start_value={@start_date && Date.to_string(@start_date)}
+              end_value={@end_date && Date.to_string(@end_date)}
+              label="Kies je reisperiode"
+            />
           </form>
         </div>
       </div>

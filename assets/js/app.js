@@ -26,10 +26,101 @@ import {hooks as colocatedHooks} from "phoenix-colocated/super_stay"
 import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+const DateRangePicker = {
+  mounted() {
+    const root = this.el
+    const monthLabel = root.querySelector("[data-picker-month]")
+    const daysContainer = root.querySelector("[data-picker-days]")
+    const startInput = root.querySelector("input[name='" + root.dataset.startName + "']")
+    const endInput = root.querySelector("input[name='" + root.dataset.endName + "']")
+    const blockedDates = JSON.parse(root.dataset.blockedDates || "[]")
+
+    let currentMonth = new Date()
+    let selectedStart = root.dataset.startValue ? new Date(root.dataset.startValue) : null
+    let selectedEnd = root.dataset.endValue ? new Date(root.dataset.endValue) : null
+
+    const formatDate = date => date.toISOString().slice(0, 10)
+
+    const isBlocked = date => blockedDates.includes(formatDate(date))
+    const isSameDay = (a, b) => a && b && formatDate(a) === formatDate(b)
+    const isInRange = date =>
+      selectedStart && selectedEnd && date >= selectedStart && date <= selectedEnd
+
+    const render = () => {
+      const monthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+      const firstDay = new Date(monthDate)
+      firstDay.setDate(1)
+      const monthStart = new Date(firstDay)
+      monthStart.setDate(1 - ((firstDay.getDay() + 6) % 7))
+      monthLabel.textContent = new Intl.DateTimeFormat("nl-NL", {
+        month: "long",
+        year: "numeric",
+      }).format(monthDate)
+
+      daysContainer.replaceChildren()
+      for (let index = 0; index < 42; index += 1) {
+        const day = new Date(monthStart)
+        day.setDate(monthStart.getDate() + index)
+
+        const button = document.createElement("button")
+        button.type = "button"
+        button.className = [
+          "date-picker-day",
+          day.getMonth() !== monthDate.getMonth() ? "date-picker-day--muted" : "",
+          isSameDay(day, selectedStart) || isSameDay(day, selectedEnd) ? "date-picker-day--selected" : "",
+          isInRange(day) ? "date-picker-day--range" : "",
+          isBlocked(day) ? "date-picker-day--blocked" : "",
+          day < new Date(new Date().setHours(0, 0, 0, 0)) ? "date-picker-day--past" : "",
+        ].filter(Boolean).join(" ")
+        button.disabled = isBlocked(day) || day < new Date(new Date().setHours(0, 0, 0, 0))
+        button.textContent = day.getDate()
+        button.dataset.date = formatDate(day)
+        button.addEventListener("click", () => this.selectDate(day, button))
+        daysContainer.appendChild(button)
+      }
+    }
+
+    this.selectDate = (date, button) => {
+      if (button.disabled) return
+
+      const day = formatDate(date)
+      if (!selectedStart || (selectedStart && selectedEnd)) {
+        selectedStart = date
+        selectedEnd = null
+        startInput.value = day
+        endInput.value = ""
+      } else if (date < selectedStart) {
+        selectedEnd = selectedStart
+        selectedStart = date
+        startInput.value = day
+        endInput.value = formatDate(selectedEnd)
+      } else {
+        selectedEnd = date
+        endInput.value = day
+      }
+
+      startInput.dispatchEvent(new Event("input", {bubbles: true}))
+      endInput.dispatchEvent(new Event("input", {bubbles: true}))
+      render()
+    }
+
+    root.querySelector("[data-picker-action='prev-month']").addEventListener("click", () => {
+      currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+      render()
+    })
+    root.querySelector("[data-picker-action='next-month']").addEventListener("click", () => {
+      currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+      render()
+    })
+
+    render()
+  },
+}
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...colocatedHooks, DateRangePicker},
 })
 
 // Show progress bar on live navigation and form submits

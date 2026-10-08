@@ -47,6 +47,7 @@ defmodule SuperStayWeb.BookingLive.New do
      |> assign(:selected_addons, %{})
      |> assign(:warnings, %{})
      |> assign(:dates_available, true)
+     |> assign(:date_errors, [])
      |> assign_form(changeset)}
   end
 
@@ -76,6 +77,10 @@ defmodule SuperStayWeb.BookingLive.New do
      socket
      |> assign(:start_date, start_date)
      |> assign(:end_date, end_date)
+     |> assign(
+       :date_errors,
+       Keyword.get(changeset.errors, :start_date, []) |> List.wrap() |> Enum.map(&elem(&1, 0))
+     )
      |> assign_form(changeset)}
   end
 

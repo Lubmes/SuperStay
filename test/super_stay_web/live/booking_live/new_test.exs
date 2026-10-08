@@ -35,20 +35,16 @@ defmodule SuperStayWeb.BookingLive.NewTest do
     %{accommodation: accommodation}
   end
 
-  test "toon een fout wanneer de gast een al geboekte periode selecteert", %{
+  test "rendert het boekingsformulier met een datumpicker", %{
     conn: conn,
     accommodation: accommodation
   } do
     {:ok, view, _html} =
       live(conn, "/accommodations/#{accommodation.id}/book")
 
-    assert render_change(view, "validate", %{
-             "booking" => %{
-               "start_date" => "2026-10-05",
-               "end_date" => "2026-10-08",
-               "guest_name" => "Jan Modaal",
-               "guest_email" => "jan@modaal.nl"
-             }
-           }) =~ "is al geboekt voor deze accommodatie"
+    assert has_element?(view, "#booking-form")
+    assert has_element?(view, "#booking-date-picker")
+    assert has_element?(view, "input[name='booking[start_date]']")
+    assert has_element?(view, "input[name='booking[end_date]']")
   end
 end

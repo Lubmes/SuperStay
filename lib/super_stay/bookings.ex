@@ -34,6 +34,22 @@ defmodule SuperStay.Bookings do
   end
 
   @doc """
+  Geeft alle datums terug die al zijn geboekt voor een accommodatie.
+  """
+  def list_booked_dates(accommodation_id) do
+    from(b in Booking,
+      where: b.accommodation_id == ^accommodation_id,
+      where: b.status == "confirmed",
+      select: {b.start_date, b.end_date}
+    )
+    |> Repo.all()
+    |> Enum.flat_map(fn {start_date, end_date} ->
+      Date.range(start_date, Date.add(end_date, -1))
+    end)
+    |> Enum.map(&Date.to_string/1)
+  end
+
+  @doc """
   Controleert of een accommodatie voor een volledig datumbereik vrij is van
   andere bevestigde boekingen.
   """
