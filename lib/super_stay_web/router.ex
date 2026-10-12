@@ -1,6 +1,8 @@
 defmodule SuperStayWeb.Router do
   use SuperStayWeb, :router
 
+  import SuperStayWeb.UserAuth
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -8,6 +10,7 @@ defmodule SuperStayWeb.Router do
     plug :put_root_layout, html: {SuperStayWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_scope_for_user
   end
 
   pipeline :api do
@@ -42,5 +45,52 @@ defmodule SuperStayWeb.Router do
       live_dashboard "/dashboard", metrics: SuperStayWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  ## Authentication routes
+
+  scope "/", SuperStayWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_authenticated_user,
+      on_mount: [{SuperStayWeb.UserAuth, :require_authenticated}] do
+      live "/users/settings", UserLive.Settings, :edit
+      live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+    end
+
+    post "/users/update-password", UserSessionController, :update_password
+  end
+
+  scope "/admin", SuperStayWeb.Admin do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :admin,
+      on_mount: [{SuperStayWeb.UserAuth, :require_authenticated}] do
+      live "/bookings", BookingLive.Index, :index
+      live "/bookings/:id", BookingLive.Show, :show
+    end
+  end
+
+  scope "/admin", SuperStayWeb.Admin do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :catalog_admin,
+      on_mount: [{SuperStayWeb.UserAuth, :require_catalog_admin}] do
+      live "/catalog", CatalogLive.Index, :index
+      live "/catalog/:type/:id", CatalogLive.Edit, :edit
+    end
+  end
+
+  scope "/", SuperStayWeb do
+    pipe_through [:browser]
+
+    live_session :current_user,
+      on_mount: [{SuperStayWeb.UserAuth, :mount_current_scope}] do
+      live "/users/log-in", UserLive.Login, :new
+      live "/users/log-in/:token", UserLive.Confirmation, :new
+    end
+
+    post "/users/log-in", UserSessionController, :create
+    delete "/users/log-out", UserSessionController, :delete
   end
 end

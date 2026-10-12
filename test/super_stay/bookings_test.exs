@@ -47,6 +47,64 @@ defmodule SuperStay.BookingsTest do
     assert Bookings.accommodation_dates_available?(acc.id, ~D[2026-10-10], ~D[2026-10-12])
   end
 
+  test "zoekt boekingen op een hoofdletterongevoelige deelnaam", %{accommodation: acc} do
+    assert {:ok, _booking} =
+             Bookings.create_booking(%{
+               start_date: ~D[2026-10-03],
+               end_date: ~D[2026-10-10],
+               total_price: 700.00,
+               guest_name: "Jan Modaal",
+               guest_email: "jan@modaal.nl",
+               accommodation_id: acc.id,
+               status: "confirmed"
+             })
+
+    assert [%{guest_name: "Jan Modaal", accommodation: %{id: accommodation_id}}] =
+             Bookings.list_bookings("jAn")
+
+    assert accommodation_id == acc.id
+  end
+
+  test "annuleren geeft accommodatie- en add-onvoorraad vrij", %{
+    accommodation: acc,
+    addon: addon
+  } do
+    {:ok, addon} = Repo.update(SuperStay.Catalog.Addon.changeset(addon, %{stock: 1}))
+
+    assert {:ok, booking} =
+             Bookings.create_booking(%{
+               start_date: ~D[2026-10-03],
+               end_date: ~D[2026-10-10],
+               total_price: 700.00,
+               guest_name: "Jan Modaal",
+               guest_email: "jan@modaal.nl",
+               accommodation_id: acc.id,
+               status: "confirmed"
+             })
+
+    assert {:ok, _booking_addon} =
+             Bookings.add_addon_to_booking(booking.id, addon.id, ~D[2026-10-05], 1)
+
+    assert Bookings.get_available_stock(addon.id, ~D[2026-10-05]) == 0
+    refute Bookings.accommodation_dates_available?(acc.id, ~D[2026-10-05], ~D[2026-10-08])
+
+    assert {:ok, %{status: "cancelled"}} = Bookings.cancel_booking(booking.id)
+    assert Bookings.get_available_stock(addon.id, ~D[2026-10-05]) == 1
+    assert Bookings.accommodation_dates_available?(acc.id, ~D[2026-10-05], ~D[2026-10-08])
+    assert {:error, :already_cancelled} = Bookings.cancel_booking(booking.id)
+
+    assert {:ok, %{status: "confirmed"}} =
+             Bookings.create_booking(%{
+               start_date: ~D[2026-10-03],
+               end_date: ~D[2026-10-10],
+               total_price: 700.00,
+               guest_name: "Nieuwe gast",
+               guest_email: "nieuw@example.com",
+               accommodation_id: acc.id,
+               status: "confirmed"
+             })
+  end
+
   test "boekt een week en huurt een fiets van maandag t/m vrijdag", %{
     accommodation: acc,
     addon: addon

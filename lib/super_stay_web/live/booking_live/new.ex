@@ -2,6 +2,9 @@ defmodule SuperStayWeb.BookingLive.New do
   use SuperStayWeb, :live_view
   alias SuperStay.Bookings
   alias SuperStay.Bookings.Booking
+  alias SuperStay.Bookings.Notifier
+
+  require Logger
 
   @impl true
   def mount(params, _session, socket) do
@@ -226,10 +229,25 @@ defmodule SuperStayWeb.BookingLive.New do
 
     # Sla alles op via onze database-transactie
     case Bookings.create_booking_with_addons(extended_params, socket.assigns.selected_addons) do
-      {:ok, _booking} ->
+      {:ok, booking} ->
+        email_result = Bookings.get_booking!(booking.id) |> Notifier.deliver_confirmation()
+
+        message =
+          case email_result do
+            {:ok, _email} ->
+              "Boeking bevestigd. De bevestiging is naar je e-mailadres gestuurd."
+
+            {:error, reason} ->
+              Logger.error(
+                "Confirmation delivery failed for booking #{booking.id}: #{inspect(reason)}"
+              )
+
+              "Boeking bevestigd, maar de bevestigingsmail kon niet worden verzonden."
+          end
+
         {:noreply,
          socket
-         |> put_flash(:info, "🎉 Boeking succesvol geplaatst!")
+         |> put_flash(:info, message)
          |> redirect(to: "/")}
 
       {:error, message} when is_binary(message) ->

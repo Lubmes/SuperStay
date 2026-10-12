@@ -1,5 +1,8 @@
 import Config
 
+# Only in tests, remove the complexity from the password hashing algorithm
+config :bcrypt_elixir, :log_rounds, 1
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
@@ -22,6 +25,7 @@ config :super_stay, SuperStayWeb.Endpoint,
 
 # In test we don't send emails
 config :super_stay, SuperStay.Mailer, adapter: Swoosh.Adapters.Test
+config :super_stay, :start_reminder_worker, false
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

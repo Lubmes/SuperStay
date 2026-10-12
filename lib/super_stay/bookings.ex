@@ -1,7 +1,100 @@
 defmodule SuperStay.Bookings do
   import Ecto.Query, warn: false
   alias SuperStay.Repo
+  alias SuperStay.Catalog.Addon
   alias SuperStay.Bookings.{Booking, BookingAddon}
+
+  require Logger
+
+  def list_bookings(search \\ nil) do
+    query =
+      from b in Booking,
+        preload: [:accommodation, booking_addons: :addon],
+        order_by: [desc: b.inserted_at]
+
+    query =
+      case search && String.trim(search) do
+        term when is_binary(term) and term != "" ->
+          pattern = "%#{term}%"
+          from b in query, where: ilike(b.guest_name, ^pattern)
+
+        _ ->
+          query
+      end
+
+    Repo.all(query)
+  end
+
+  def cancel_booking(id) do
+    case Repo.get(Booking, id) do
+      nil ->
+        {:error, :not_found}
+
+      %Booking{status: "cancelled"} ->
+        {:error, :already_cancelled}
+
+      booking ->
+        booking
+        |> Booking.changeset(%{status: "cancelled"})
+        |> Repo.update()
+    end
+  end
+
+  def list_due_reminders(%Date{} = today) do
+    reminder_arrival = Date.add(today, 3)
+
+    from(b in Booking,
+      where: b.status == "confirmed",
+      where: b.start_date == ^reminder_arrival,
+      where: is_nil(b.reminder_sent_at),
+      preload: [:accommodation, booking_addons: :addon]
+    )
+    |> Repo.all()
+  end
+
+  def send_due_reminders(%Date{} = today) do
+    Enum.reduce(list_due_reminders(today), 0, fn booking, sent_count ->
+      case claim_reminder(booking.id) do
+        {:ok, claimed_at} ->
+          case SuperStay.Bookings.Notifier.deliver_reminder(booking) do
+            {:ok, _email} ->
+              sent_count + 1
+
+            {:error, reason} ->
+              release_reminder_claim(booking.id, claimed_at)
+
+              Logger.error(
+                "Reminder delivery failed for booking #{booking.id}: #{inspect(reason)}"
+              )
+
+              sent_count
+          end
+
+        :already_claimed ->
+          sent_count
+      end
+    end)
+  end
+
+  defp claim_reminder(booking_id) do
+    claimed_at = DateTime.utc_now(:second)
+
+    {count, _} =
+      from(b in Booking,
+        where: b.id == ^booking_id and b.status == "confirmed",
+        where: is_nil(b.reminder_sent_at)
+      )
+      |> Repo.update_all(set: [reminder_sent_at: claimed_at])
+
+    if count == 1, do: {:ok, claimed_at}, else: :already_claimed
+  end
+
+  defp release_reminder_claim(booking_id, claimed_at) do
+    from(b in Booking,
+      where: b.id == ^booking_id and b.reminder_sent_at == ^claimed_at
+    )
+    |> Repo.update_all(set: [reminder_sent_at: nil])
+  end
 
   # Boekingen
   def create_booking(attrs \\ %{}) do
@@ -83,6 +176,8 @@ defmodule SuperStay.Bookings do
         already_booked =
           Repo.one(
             from ba in BookingAddon,
+              join: b in Booking,
+              on: b.id == ba.booking_id and b.status == "confirmed",
               where: ba.addon_id == ^addon_id and ba.date == ^date,
               select: sum(ba.quantity)
           ) || 0

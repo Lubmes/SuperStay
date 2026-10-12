@@ -38,6 +38,31 @@
     </script>
   </head>
   <body>
+    <header class="border-b border-base-300 bg-base-100">
+      <nav class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-3 px-5 py-3">
+        <a href="/" class="flex items-center gap-2 font-semibold"><img
+          src={~p"/images/logo.svg"}
+          width="30"
+          alt=""
+        />SuperStay</a>
+        <div class="flex flex-1 flex-wrap items-center justify-end gap-3 text-sm">
+          <%= if @current_scope do %>
+            <.link href={~p"/admin/bookings"} class="font-medium hover:text-primary">Boekingen</.link>
+            <.link
+              :if={@current_scope.user.role == "catalog_admin"}
+              href={~p"/admin/catalog"}
+              class="font-medium hover:text-primary"
+            >Catalogus</.link>
+            <span class="hidden text-base-content/60 sm:inline">{@current_scope.user.email}</span>
+            <.link href={~p"/users/settings"} class="hover:text-primary">Account</.link>
+            <.link href={~p"/users/log-out"} method="delete" class="btn btn-sm btn-outline">Uitloggen</.link>
+          <% else %>
+            <.link href={~p"/users/log-in"} class="btn btn-sm btn-primary">Adminlogin</.link>
+          <% end %>
+          <.theme_toggle />
+        </div>
+      </nav>
+    </header>
     {@inner_content}
   </body>
 </html>

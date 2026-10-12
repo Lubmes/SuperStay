@@ -134,4 +134,7 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Req
   #
   # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
+  if email_from = System.get_env("BOOKING_EMAIL_FROM") do
+    config :super_stay, :booking_email_from, {"SuperStay", email_from}
+  end
 end

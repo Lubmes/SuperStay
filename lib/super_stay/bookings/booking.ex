@@ -9,6 +9,7 @@ defmodule SuperStay.Bookings.Booking do
     field :status, :string, default: "pending"
     field :guest_name, :string
     field :guest_email, :string
+    field :reminder_sent_at, :utc_datetime
 
     belongs_to :accommodation, SuperStay.Catalog.Accommodation
     has_many :booking_addons, SuperStay.Bookings.BookingAddon

@@ -7,6 +7,19 @@
 # General application configuration
 import Config
 
+config :super_stay, :scopes,
+  user: [
+    default: true,
+    module: SuperStay.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: SuperStay.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :super_stay,
   ecto_repos: [SuperStay.Repo],
   generators: [timestamp_type: :utc_datetime]
@@ -35,6 +48,7 @@ config :phoenix_live_view,
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
 config :super_stay, SuperStay.Mailer, adapter: Swoosh.Adapters.Local
+config :super_stay, :booking_email_from, {"SuperStay", "bookings@localhost"}
 
 # Configure esbuild (the version is required)
 config :esbuild,

@@ -3,6 +3,8 @@ defmodule SuperStayWeb.BookingLive.NewTest do
 
   import Phoenix.LiveViewTest
 
+  alias SuperStay.Bookings
+
   setup do
     {:ok, location} =
       SuperStay.Catalog.create_location(%{
@@ -46,5 +48,36 @@ defmodule SuperStayWeb.BookingLive.NewTest do
     assert has_element?(view, "#booking-date-picker")
     assert has_element?(view, "input[name='booking[start_date]']")
     assert has_element?(view, "input[name='booking[end_date]']")
+  end
+
+  test "maakt de boeking aan en verstuurt daarna een bevestiging", %{
+    conn: conn,
+    accommodation: accommodation
+  } do
+    {:ok, view, _html} =
+      live(
+        conn,
+        "/accommodations/#{accommodation.id}/book?start_date=2026-11-03&end_date=2026-11-05"
+      )
+
+    view
+    |> form("#booking-form", %{
+      "booking" => %{
+        "guest_name" => "Ada Voorbeeld",
+        "guest_email" => "ada@example.com"
+      }
+    })
+    |> render_submit()
+
+    view
+    |> element("button[phx-click='next_to_review']")
+    |> render_click()
+
+    view
+    |> element("button[phx-click='save']")
+    |> render_click()
+
+    assert [%{status: "confirmed", guest_email: "ada@example.com"}] =
+             Bookings.list_bookings("Ada Voorbeeld")
   end
 end

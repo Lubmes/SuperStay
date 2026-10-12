@@ -7,16 +7,17 @@ defmodule SuperStay.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      SuperStayWeb.Telemetry,
-      SuperStay.Repo,
-      {DNSCluster, query: Application.get_env(:super_stay, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: SuperStay.PubSub},
-      # Start a worker by calling: SuperStay.Worker.start_link(arg)
-      # {SuperStay.Worker, arg},
-      # Start to serve requests, typically the last entry
-      SuperStayWeb.Endpoint
-    ]
+    children =
+      [
+        SuperStayWeb.Telemetry,
+        SuperStay.Repo,
+        {DNSCluster, query: Application.get_env(:super_stay, :dns_cluster_query) || :ignore},
+        {Phoenix.PubSub, name: SuperStay.PubSub}
+      ] ++
+        if(Application.get_env(:super_stay, :start_reminder_worker, true),
+          do: [SuperStay.Bookings.ReminderWorker],
+          else: []
+        ) ++ [SuperStayWeb.Endpoint]
 
     # See https://elixir.hexdocs.pm/Supervisor.html
     # for other strategies and supported options
