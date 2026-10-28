@@ -128,24 +128,35 @@
             <div class="flex items-center gap-2 bg-base-100 p-2 rounded-lg shadow-sm border border-base-200">
               <span class="text-sm font-medium">{addon.name["nl"]}:</span>
               <button
+                id={"quick-max-guests-#{addon.id}"}
                 type="button"
                 phx-click="apply_all_days"
                 phx-value-addon-id={addon.id}
-                phx-value-qty="1"
+                phx-value-action="guest_count"
                 class="btn btn-xs btn-outline btn-primary"
-              >+1 st.</button>
+              >Max. gasten ({@accommodation.max_guests})</button>
               <button
+                id={"quick-decrement-#{addon.id}"}
                 type="button"
                 phx-click="apply_all_days"
                 phx-value-addon-id={addon.id}
-                phx-value-qty="2"
+                phx-value-action="decrement"
+                class="btn btn-xs btn-outline"
+              >-1</button>
+              <button
+                id={"quick-increment-#{addon.id}"}
+                type="button"
+                phx-click="apply_all_days"
+                phx-value-addon-id={addon.id}
+                phx-value-action="increment"
                 class="btn btn-xs btn-outline btn-primary"
-              >+2 st.</button>
+              >+1</button>
               <button
+                id={"quick-clear-#{addon.id}"}
                 type="button"
                 phx-click="apply_all_days"
                 phx-value-addon-id={addon.id}
-                phx-value-qty="0"
+                phx-value-action="clear"
                 class="btn btn-xs btn-error btn-outline"
               >Wis</button>
             </div>
@@ -161,8 +172,11 @@
           <% date_str = Date.to_string(date) %>
           <div class="collapse collapse-arrow bg-base-200 border border-base-300 rounded-xl">
             <input type="checkbox" checked />
-            <div class="collapse-title font-semibold text-lg flex justify-between items-center pr-12">
-              <span>📅 {date_str}</span>
+            <div
+              id={"booking-day-#{date_str}"}
+              class="collapse-title font-semibold text-lg flex justify-between items-center pr-12"
+            >
+              <span>📅 {weekday_name(date)}, {date_str}</span>
             </div>
 
             <div class="collapse-content bg-base-100 p-4 space-y-4">
@@ -176,7 +190,7 @@
                   </div>
 
                   <!-- PLUS / MIN TELLER -->
-                  <div class="flex flex-col items-end gap-1">
+                  <div class="flex flex-wrap items-center justify-end gap-2">
                     <div class="join border border-base-300">
                       <button
                         type="button"
@@ -186,7 +200,10 @@
                         phx-value-op="dec"
                         class="btn btn-sm join-item"
                       >-</button>
-                      <span class="bg-base-200 px-4 flex items-center font-bold join-item text-sm">{qty}</span>
+                      <span
+                        id={"addon-quantity-#{date_str}-#{addon.id}"}
+                        class="bg-base-200 px-4 flex items-center font-bold join-item text-sm"
+                      >{qty}</span>
                       <button
                         type="button"
                         phx-click="change_qty"
@@ -195,6 +212,26 @@
                         phx-value-op="inc"
                         class="btn btn-sm join-item"
                       >+</button>
+                    </div>
+                    <div class="flex gap-1">
+                      <button
+                        id={"day-max-guests-#{date_str}-#{addon.id}"}
+                        type="button"
+                        phx-click="apply_day_action"
+                        phx-value-date={date_str}
+                        phx-value-addon-id={addon.id}
+                        phx-value-action="guest_count"
+                        class="btn btn-xs btn-outline btn-primary"
+                      >Max. gasten</button>
+                      <button
+                        id={"day-clear-#{date_str}-#{addon.id}"}
+                        type="button"
+                        phx-click="apply_day_action"
+                        phx-value-date={date_str}
+                        phx-value-addon-id={addon.id}
+                        phx-value-action="clear"
+                        class="btn btn-xs btn-error btn-outline"
+                      >Wis</button>
                     </div>
 
                     <!-- WAARSCHUWINGSTEXT -->
@@ -212,13 +249,19 @@
       <!-- NAVIGATIE ONDERAAN STAP 2 -->
       <div class="flex justify-between pt-6 border-t border-base-300 mt-6">
         <button type="button" phx-click="prev_step" class="btn btn-outline">◀ Terug naar datums</button>
-        <button
-          type="button"
-          phx-click="next_to_review"
-          class="btn btn-primary px-8 text-white font-bold shadow-md"
-        >
-          Volgende: Controleer Overzicht ➔
-        </button>
+        <div class="flex flex-wrap items-center justify-end gap-4">
+          <div id="step-two-addons-total" aria-live="polite" class="text-right">
+            <span class="block text-xs text-base-content/60">Totaal add-ons</span>
+            <strong class="text-lg">€{Decimal.to_string(@addons_total, :normal)}</strong>
+          </div>
+          <button
+            type="button"
+            phx-click="next_to_review"
+            class="btn btn-primary px-8 text-white font-bold shadow-md"
+          >
+            Volgende: Controleer Overzicht ➔
+          </button>
+        </div>
       </div>
     </div>
   <% end %>

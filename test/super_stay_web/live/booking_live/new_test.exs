@@ -23,6 +23,14 @@ defmodule SuperStayWeb.BookingLive.NewTest do
         location_id: location.id
       })
 
+    {:ok, addon} =
+      SuperStay.Catalog.create_addon(%{
+        name: %{"nl" => "Fiets"},
+        price: 10,
+        stock: nil,
+        location_id: location.id
+      })
+
     {:ok, _booking} =
       SuperStay.Bookings.create_booking(%{
         start_date: ~D[2026-10-03],
@@ -34,7 +42,7 @@ defmodule SuperStayWeb.BookingLive.NewTest do
         status: "confirmed"
       })
 
-    %{accommodation: accommodation}
+    %{accommodation: accommodation, addon: addon}
   end
 
   test "rendert het boekingsformulier met een datumpicker", %{
@@ -79,5 +87,100 @@ defmodule SuperStayWeb.BookingLive.NewTest do
 
     assert [%{status: "confirmed", guest_email: "ada@example.com"}] =
              Bookings.list_bookings("Ada Voorbeeld")
+  end
+
+  test "past snelkeuzes toe op elke verblijfsdag", %{
+    conn: conn,
+    accommodation: accommodation,
+    addon: addon
+  } do
+    {:ok, view, _html} =
+      live(
+        conn,
+        "/accommodations/#{accommodation.id}/book?start_date=2026-11-03&end_date=2026-11-06"
+      )
+
+    view
+    |> form("#booking-form", %{
+      "booking" => %{"guest_name" => "Testgast", "guest_email" => "test@example.com"}
+    })
+    |> render_submit()
+
+    assert has_element?(view, "#booking-day-2026-11-03", "dinsdag")
+    assert has_element?(view, "#step-two-addons-total", "€0")
+    assert has_element?(view, "#quick-max-guests-#{addon.id}")
+    assert has_element?(view, "#quick-decrement-#{addon.id}")
+    assert has_element?(view, "#quick-increment-#{addon.id}")
+    assert has_element?(view, "#quick-clear-#{addon.id}")
+    assert has_element?(view, "#day-max-guests-2026-11-04-#{addon.id}")
+    assert has_element?(view, "#day-clear-2026-11-04-#{addon.id}")
+
+    view
+    |> element("#quick-max-guests-#{addon.id}")
+    |> render_click()
+
+    for date <- ["2026-11-03", "2026-11-04", "2026-11-05"] do
+      assert has_element?(
+               view,
+               "#addon-quantity-#{date}-#{addon.id}",
+               "#{accommodation.max_guests}"
+             )
+    end
+
+    assert has_element?(view, "#step-two-addons-total", "€120")
+
+    view
+    |> element("#quick-decrement-#{addon.id}")
+    |> render_click()
+
+    for date <- ["2026-11-03", "2026-11-04", "2026-11-05"] do
+      assert has_element?(
+               view,
+               "#addon-quantity-#{date}-#{addon.id}",
+               "#{accommodation.max_guests - 1}"
+             )
+    end
+
+    assert has_element?(view, "#step-two-addons-total", "€90")
+
+    view
+    |> element("#quick-increment-#{addon.id}")
+    |> render_click()
+
+    for date <- ["2026-11-03", "2026-11-04", "2026-11-05"] do
+      assert has_element?(
+               view,
+               "#addon-quantity-#{date}-#{addon.id}",
+               "#{accommodation.max_guests}"
+             )
+    end
+
+    assert has_element?(view, "#step-two-addons-total", "€120")
+
+    view
+    |> element("#quick-clear-#{addon.id}")
+    |> render_click()
+
+    for date <- ["2026-11-03", "2026-11-04", "2026-11-05"] do
+      assert has_element?(view, "#addon-quantity-#{date}-#{addon.id}", "0")
+    end
+
+    assert has_element?(view, "#step-two-addons-total", "€0")
+
+    view
+    |> element("#day-max-guests-2026-11-04-#{addon.id}")
+    |> render_click()
+
+    assert has_element?(view, "#addon-quantity-2026-11-04-#{addon.id}", "4")
+    assert has_element?(view, "#addon-quantity-2026-11-03-#{addon.id}", "0")
+    assert has_element?(view, "#addon-quantity-2026-11-05-#{addon.id}", "0")
+    assert has_element?(view, "#step-two-addons-total", "€40")
+
+    view
+    |> element("#day-clear-2026-11-04-#{addon.id}")
+    |> render_click()
+
+    assert has_element?(view, "#addon-quantity-2026-11-04-#{addon.id}", "0")
+    assert has_element?(view, "#step-two-addons-total", "€0")
   end
 end

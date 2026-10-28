@@ -48,6 +48,7 @@ defmodule SuperStayWeb.BookingLive.New do
      |> assign(:start_date, start_date)
      |> assign(:end_date, end_date)
      |> assign(:selected_addons, %{})
+     |> assign(:addons_total, Decimal.new(0))
      |> assign(:warnings, %{})
      |> assign(:dates_available, true)
      |> assign(:date_errors, [])
@@ -117,6 +118,7 @@ defmodule SuperStayWeb.BookingLive.New do
        |> assign(:start_date, start_date)
        |> assign(:end_date, end_date)
        |> assign(:selected_addons, selected_addons)
+       |> assign(:addons_total, Decimal.new(0))
        |> assign_form(changeset)}
     else
       # Mocht er toch een echte invoerfout zijn, toon de rode errors op het scherm
@@ -174,32 +176,75 @@ defmodule SuperStayWeb.BookingLive.New do
     new_socket =
       socket
       |> assign(:selected_addons, updated_selected_addons)
+      |> assign_addons_total()
       |> validate_stock_for_day(date_str, date, addon_id, new_qty)
 
     {:noreply, new_socket}
   end
 
+  def handle_event(
+        "apply_day_action",
+        %{"date" => date_str, "addon-id" => addon_id_str, "action" => action},
+        socket
+      )
+      when action in ["guest_count", "clear"] do
+    addon_id = String.to_integer(addon_id_str)
+    date = Date.from_iso8601!(date_str)
+
+    qty =
+      case action do
+        "guest_count" -> socket.assigns.accommodation.max_guests
+        "clear" -> 0
+      end
+
+    selected_addons = put_in(socket.assigns.selected_addons, [date_str, addon_id], qty)
+
+    updated_socket =
+      socket
+      |> assign(:selected_addons, selected_addons)
+      |> assign_addons_total()
+      |> validate_stock_for_day(date_str, date, addon_id, qty)
+
+    {:noreply, updated_socket}
+  end
+
   @impl true
   # Event voor de "Pas toe op alle dagen" snelkeuze-knop
-  def handle_event("apply_all_days", %{"addon-id" => addon_id_str, "qty" => qty_str}, socket) do
+  def handle_event(
+        "apply_all_days",
+        %{"addon-id" => addon_id_str, "action" => action},
+        socket
+      )
+      when action in ["guest_count", "decrement", "increment", "clear"] do
     addon_id = String.to_integer(addon_id_str)
-    qty = String.to_integer(qty_str)
 
     days = Date.range(socket.assigns.start_date, Date.add(socket.assigns.end_date, -1))
 
-    # We passen de wijzigingen eerst toe op de losse map
     updated_addons =
       Enum.reduce(days, socket.assigns.selected_addons, fn date, acc_map ->
         date_str = Date.to_string(date)
-        put_in(acc_map, [date_str, addon_id], qty)
+        current_qty = get_in(acc_map, [date_str, addon_id]) || 0
+
+        new_qty =
+          case action do
+            "guest_count" -> socket.assigns.accommodation.max_guests
+            "decrement" -> max(0, current_qty - 1)
+            "increment" -> current_qty + 1
+            "clear" -> 0
+          end
+
+        put_in(acc_map, [date_str, addon_id], new_qty)
       end)
 
-    # Daarna voeren we de voorraadchecks uit over de socket
-    new_socket = assign(socket, :selected_addons, updated_addons)
+    new_socket =
+      socket
+      |> assign(:selected_addons, updated_addons)
+      |> assign_addons_total()
 
     checked_socket =
       Enum.reduce(days, new_socket, fn date, acc_socket ->
         date_str = Date.to_string(date)
+        qty = get_in(updated_addons, [date_str, addon_id]) || 0
         validate_stock_for_day(acc_socket, date_str, date, addon_id, qty)
       end)
 
@@ -260,6 +305,18 @@ defmodule SuperStayWeb.BookingLive.New do
 
   # --- PRIVATE HELPERS ---
 
+  defp weekday_name(date) do
+    case Date.day_of_week(date) do
+      1 -> "maandag"
+      2 -> "dinsdag"
+      3 -> "woensdag"
+      4 -> "donderdag"
+      5 -> "vrijdag"
+      6 -> "zaterdag"
+      7 -> "zondag"
+    end
+  end
+
   # Zorgt dat de waarschuwingen netjes als string-keys worden opgeslagen
   defp validate_stock_for_day(socket, date_str, date, addon_id, qty) do
     if Bookings.stock_available?(addon_id, date, qty) do
@@ -289,6 +346,11 @@ defmodule SuperStayWeb.BookingLive.New do
   end
 
   defp assign_form(socket, changeset), do: assign(socket, :form, to_form(changeset))
+
+  defp assign_addons_total(socket) do
+    total = calculate_addons_total(socket.assigns.selected_addons, socket.assigns.addons)
+    assign(socket, :addons_total, total)
+  end
 
   # Telt de prijzen van alle gekozen add-ons bij elkaar op (veilig met string-keys)
   defp calculate_addons_total(selected_addons, addons_catalog) do
